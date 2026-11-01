@@ -23,6 +23,7 @@ Refresh of the 2021 SDK for current Xcode and the current Syte API.
 - Autocomplete and popular searches returned an error when there were simply no results. They now return an empty result.
 - Platform settings failed to load because one settings field changed shape on the server.
 - Search hits now include their `sku`.
+- Personalization sent SKUs as unquoted JSON, so any SKU with letters (most retailers' SKUs) got a 400 from the API.
 
 ### Changed
 

@@ -15,23 +15,12 @@ class Utils {
     }
     
     static func viewedProductsJSONArray(viewedProducts: Set<String>) -> String? {
-        guard viewedProducts.isEmpty == false else { return nil }
-        var string = "["
-        for sku in viewedProducts {
-            string += "\""
-            string += sku
-            string += "\""
-            string += ","
-        }
-        string.removeLast()
-        string += "]"
-        return string
+        skusJSONArray(Array(viewedProducts))
     }
     
     static func viewedProductsJSONArray(sku: String?) -> String? {
         guard let sku = sku else { return nil }
-        return "[\(sku)]"
-        
+        return skusJSONArray([sku])
     }
     
     static func skusJSONArray(_ skus: [String]) -> String? {

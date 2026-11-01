@@ -51,6 +51,13 @@ final class OfflineTests: XCTestCase {
                        "{\"color\":[\"red\"],\"size\":[\"L\"]}")
     }
 
+    func testSkuListsAreValidJSON() {
+        // Unquoted SKUs like [AB-12] made the personalization API answer 400.
+        XCTAssertEqual(Utils.viewedProductsJSONArray(sku: "AB-12"), "[\"AB-12\"]")
+        XCTAssertEqual(Utils.skusJSONArray(["AB-12", "CD-34"]), "[\"AB-12\",\"CD-34\"]")
+        XCTAssertNil(Utils.skusJSONArray([]))
+    }
+
     func testShopperIdSurvivesRestart() {
         let firstLaunch = SyteStorage(suiteName: suite)
         let id = firstLaunch.getUserId()

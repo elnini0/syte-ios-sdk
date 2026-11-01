@@ -14,6 +14,7 @@ class RecommendationRemoteDataSource: BaseRemoteDataSource {
         case similarProducts = "similars"
         case shopTheLook = "ctl"
         case personalization = "personalization"
+        case boughtTogether = "bought_together"
     }
     
     private static let tag = String(describing: RecommendationRemoteDataSource.self)
@@ -97,19 +98,55 @@ class RecommendationRemoteDataSource: BaseRemoteDataSource {
         
         var viewedProducts = Utils.viewedProductsJSONArray(viewedProducts: configuration.getViewedProducts())
         viewedProducts = viewedProducts ?? Utils.viewedProductsJSONArray(sku: personalization.sku)
-        let body = "{\n    \"user_uuid\": \"\(configuration.userId)\",\n    \"session_skus\": \(viewedProducts ?? ""),\n    \"model_version\": \"\(personalization.modelVersion)\"\n}".data(using: .utf8)
+        return personalizationCall(product: .personalization,
+                                   sessionSkus: viewedProducts ?? "",
+                                   modelVersion: personalization.modelVersion,
+                                   fields: personalization.fieldsToReturn,
+                                   limit: personalization.limit,
+                                   syteUrlReferer: personalization.syteUrlReferer,
+                                   options: personalization.options)
+    }
+
+    func getBoughtTogether(boughtTogether: BoughtTogether, completion: @escaping (SyteResult<PersonalizationResult>) -> Void) {
+        guard let skus = Utils.skusJSONArray(boughtTogether.skus) else {
+            return completion(.failureResult(message: "Pass at least one SKU to get frequently bought together items."))
+        }
+        firstly {
+            personalizationCall(product: .boughtTogether,
+                                sessionSkus: skus,
+                                modelVersion: boughtTogether.modelVersion,
+                                fields: boughtTogether.fieldsToReturn,
+                                limit: boughtTogether.limit,
+                                syteUrlReferer: boughtTogether.syteUrlReferer,
+                                options: boughtTogether.options)
+        }.done { result in
+            completion(result)
+        }.catch { error in
+            completion(.failureResult(message: error.localizedDescription))
+        }
+    }
+
+    /// Personalized recommendations and frequently-bought-together items share one endpoint.
+    private func personalizationCall(product: RecommendationProduct,
+                                     sessionSkus: String,
+                                     modelVersion: String,
+                                     fields: RecommendationReturnField,
+                                     limit: Int,
+                                     syteUrlReferer: String,
+                                     options: [String: String]) -> Promise<SyteResult<PersonalizationResult>> {
+        let body = "{\n    \"user_uuid\": \"\(configuration.userId)\",\n    \"session_skus\": \(sessionSkus),\n    \"model_version\": \"\(modelVersion)\"\n}".data(using: .utf8)
 
         return syteService.getPersonalization(parameters: .init(accountId: configuration.accountId,
                                                                 signature: configuration.signature,
-                                                                syteAppRef: RecommendationProduct.personalization.getName(),
+                                                                syteAppRef: product.getName(),
                                                                 locale: configuration.locale,
-                                                                fields: personalization.fieldsToReturn.getName(),
-                                                                features: RecommendationProduct.personalization.getName(),
-                                                                product: RecommendationProduct.personalization.getName(),
-                                                                limit: personalization.limit,
-                                                                syteUrlReferer: personalization.syteUrlReferer,
+                                                                fields: fields.getName(),
+                                                                features: product.getName(),
+                                                                product: product.getName(),
+                                                                limit: limit,
+                                                                syteUrlReferer: syteUrlReferer,
                                                                 body: body ?? Data(),
-                                                                options: personalization.options))
+                                                                options: options))
     }
     
 }

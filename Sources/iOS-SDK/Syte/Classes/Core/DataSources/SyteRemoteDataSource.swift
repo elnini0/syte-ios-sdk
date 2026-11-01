@@ -13,7 +13,6 @@ class SyteRemoteDataSource: BaseRemoteDataSource {
     private static let tag = String(describing: SyteRemoteDataSource.self)
     
     private let syteService = SyteService()
-    private let exifService = ExifService()
     private let recommendationRemoteDataSource: RecommendationRemoteDataSource
     private let textSearchRemoteDataSource: TextSearchRemoteDataSource
     
@@ -69,14 +68,10 @@ class SyteRemoteDataSource: BaseRemoteDataSource {
         renewTimestamp()
         
         firstly {
-            prepareImageSearchRequestData(requestData: requestData)
-        }.then { [weak self] response -> Promise<SyteResult<BoundsResult>>  in
+            compressImage(requestData: requestData)
+        }.then { [weak self] imageData -> Promise<SyteResult<BoundsResult>>  in
             guard let strongSelf = self else { throw SyteError.generalError(message: "Something went wrong.") }
-            guard let responseData = response.data else { throw SyteError.generalError(message: "Exif removal service returned empty body.") }
-            responseData.retrieveOffersForTheFirstBound = requestData.retrieveOffersForTheFirstBound
-            responseData.coordinates = requestData.coordinates
-            responseData.personalizedRanking = requestData.personalizedRanking
-            return strongSelf.getBounds(requestData: responseData)
+            return strongSelf.uploadImageForBounds(requestData: requestData, imageData: imageData)
         }.done { response in
             completion(response)
         }.catch { error in
@@ -100,6 +95,12 @@ class SyteRemoteDataSource: BaseRemoteDataSource {
         recommendationRemoteDataSource.getPersonalization(personalization: personalization, completion: completion)
     }
     
+    func getBoughtTogether(boughtTogether: BoughtTogether,
+                           completion: @escaping (SyteResult<PersonalizationResult>) -> Void) {
+        renewTimestamp()
+        recommendationRemoteDataSource.getBoughtTogether(boughtTogether: boughtTogether, completion: completion)
+    }
+    
     func getAutoComplete(query: String,
                          lang: String,
                          completion: @escaping (SyteResult<AutoCompleteResult>) -> Void) {
@@ -117,25 +118,42 @@ class SyteRemoteDataSource: BaseRemoteDataSource {
         textSearchRemoteDataSource.getTextSearch(textSearch: textSearch, completion: completion)
     }
     
-    private func prepareImageSearchRequestData(requestData: ImageSearch) -> Promise<SyteResult<UrlImageSearch>> {
-        var size = 0
+    private func compressImage(requestData: ImageSearch) -> Promise<Data> {
         let imageSize = requestData.image.getImageSizeInKbAsJpeg()
-        size = imageSize > 0 ? imageSize : 0
         
         return firstly {
             ImageProcessor.compressToDataWithLoseQuality(image: requestData.image,
-                                                         size: size,
+                                                         size: max(imageSize, 0),
                                                          scale: requestData.scale)
-        }.then { [weak self] imageData -> Promise<SyteResult<UrlImageSearch>>  in
-            guard let strongSelf = self,
-                  let finalImageData = imageData else { return .init(error: SyteError.generalError(message: "Image is too big.")) }
-            SyteLogger.i(tag: SyteRemoteDataSource.tag, message: "Compressed image size: \(finalImageData.getSizeInKB()), data: \(finalImageData)")
-            
-            return strongSelf.exifService.removeTags(accountId: strongSelf.configuration.accountId,
-                                                     signature: strongSelf.configuration.signature,
-                                                     imagePayload: finalImageData).map { response -> SyteResult<UrlImageSearch> in
-                return response
-            }
+        }.map { imageData -> Data in
+            guard let finalImageData = imageData else { throw SyteError.generalError(message: "Image is too big.") }
+            SyteLogger.i(tag: SyteRemoteDataSource.tag, message: "Compressed image size: \(finalImageData.getSizeInKB())")
+            return finalImageData
+        }
+    }
+    
+    /// Uploads the photo straight to item detection, then fetches matches for the first item like the URL flow does.
+    private func uploadImageForBounds(requestData: ImageSearch, imageData: Data) -> Promise<SyteResult<BoundsResult>> {
+        let personalized = requestData.personalizedRanking
+        return firstly {
+            syteService.uploadImageForBounds(parameters: .init(accountId: configuration.accountId,
+                                                               signature: configuration.signature,
+                                                               userId: personalized ? configuration.userId : nil,
+                                                               sessionId: personalized ? String(configuration.sessionId) : nil,
+                                                               syteAppRef: SyteProductType.camera.getName(),
+                                                               locale: configuration.locale,
+                                                               sku: nil,
+                                                               imageUrl: "",
+                                                               sessionSkus: personalized ?
+                                                                Utils.viewedProductsString(viewedProducts: configuration.getViewedProducts()) : nil,
+                                                               options: [:]),
+                                             imageData: imageData)
+        }.then { [weak self] response -> Promise<SyteResult<BoundsResult>> in
+            guard let strongSelf = self else { return .value(response) }
+            let urlRequest = UrlImageSearch(imageUrl: "", productType: .camera)
+            urlRequest.retrieveOffersForTheFirstBound = requestData.retrieveOffersForTheFirstBound
+            urlRequest.coordinates = requestData.coordinates
+            return strongSelf.handleBoundsResult(response, requestData: urlRequest)
         }
     }
     

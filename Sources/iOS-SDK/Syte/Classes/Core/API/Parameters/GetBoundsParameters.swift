@@ -27,6 +27,7 @@ struct GetBoundsParameters {
             "syte_uuid": userId,
             "session_id": sessionId,
             "syte_app_ref": syteAppRef,
+            "syte_product": syteAppRef,
             "locale": locale,
             "sku": sku,
             "imageUrl": imageUrl,

@@ -4,6 +4,11 @@
 
 Refresh of the 2021 SDK for current Xcode and the current Syte API.
 
+### Added
+
+- Frequently bought together recommendations.
+- Photo search uploads the photo straight to item detection in one call, as Syte's current docs describe, replacing the separate image upload service. Photo searches are reported as camera searches.
+
 ### Breaking
 
 - Minimum iOS is now 15.

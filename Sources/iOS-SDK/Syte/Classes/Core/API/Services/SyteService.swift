@@ -52,6 +52,27 @@ class SyteService: SyteServiceProtocol {
         }
     }
     
+    /// Detects items in an uploaded photo. The response is keyed by the URL the photo was stored at,
+    /// which isn't known in advance, so the first entry is taken whatever its key.
+    func uploadImageForBounds(parameters: GetBoundsParameters, imageData: Data) -> Promise<SyteResult<BoundsResult>> {
+        service.request(.uploadImageForBounds(parameters: parameters, imageData: imageData)).map { response -> SyteResult<BoundsResult> in
+            let result = SyteResult<BoundsResult>()
+            result.resultCode = response.statusCode
+            do {
+                _ = try response.filterSuccessfulStatusCodes()
+                guard let json = try JSONSerialization.jsonObject(with: response.data) as? [String: Any],
+                      let bounds = json.values.first else { throw SyteError.generalError(message: "No items detected in the photo.") }
+                let normalized = try JSONSerialization.data(withJSONObject: ["bounds": bounds])
+                result.data = try JSONDecoder().decode(BoundsResult.self, from: normalized)
+                result.isSuccessful = true
+            } catch {
+                let stringResponse = try? response.mapString()
+                result.errorMessage = stringResponse ?? error.localizedDescription
+            }
+            return result
+        }
+    }
+    
     func getOffers(parameters: GetOffersParameters) -> Promise<SyteResult<ItemsResult>> {
         sendRequestWithDefaultHandling(request: .getOffers(parameters: parameters))
     }

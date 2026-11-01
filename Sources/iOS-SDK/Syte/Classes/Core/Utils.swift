@@ -34,6 +34,12 @@ class Utils {
         
     }
     
+    static func skusJSONArray(_ skus: [String]) -> String? {
+        guard !skus.isEmpty,
+              let data = try? JSONSerialization.data(withJSONObject: skus) else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
     static func textSearchTermsString(terms: [String]) -> String {
         return terms.joined(separator: ",")
     }

@@ -14,6 +14,8 @@ enum SyteProvider: BaseProvider {
     
     case getBounds(parameters: GetBoundsParameters)
     
+    case uploadImageForBounds(parameters: GetBoundsParameters, imageData: Data)
+    
     case getOffers(parameters: GetOffersParameters)
     
     case getSimilars(parameters: GetSimilarsParameters)
@@ -47,7 +49,7 @@ extension SyteProvider: TargetType, AccessTokenAuthorizable {
         switch self {
         case .getSettings(let accountId):
             return "/accounts/\(accountId)"
-        case .getBounds:
+        case .getBounds, .uploadImageForBounds:
             return "/v1.1/offers/bb"
         case .getOffers:
             return ""
@@ -68,7 +70,7 @@ extension SyteProvider: TargetType, AccessTokenAuthorizable {
     
     var method: Moya.Method {
         switch self {
-        case .getPersonalization:
+        case .getPersonalization, .uploadImageForBounds:
             return .post
         default:
             return.get
@@ -87,6 +89,11 @@ extension SyteProvider: TargetType, AccessTokenAuthorizable {
             return .requestParameters(parameters: parameters.dictionaryRepresentation(), encoding: URLEncoding.queryString)
         case .getPersonalization(let parameters):
             return .requestCompositeData(bodyData: parameters.body, urlParameters: parameters.dictionaryRepresentation())
+        case .uploadImageForBounds(let parameters, let imageData):
+            var urlParameters = parameters.dictionaryRepresentation()
+            urlParameters["imageUrl"] = nil
+            urlParameters["payload_type"] = "image_bin"
+            return .requestCompositeData(bodyData: imageData, urlParameters: urlParameters)
         case .getPopularSearch(let parameters):
             return .requestParameters(parameters: parameters.dictionaryRepresentation(), encoding: URLEncoding.queryString)
         case .getTextSearch(let parameters):
@@ -109,6 +116,9 @@ extension SyteProvider: TargetType, AccessTokenAuthorizable {
             headers["Content-type"] = "text/plain"
             headers["x-api-key"] = parameters.signature
         case .getBounds(let parameters):
+            headers["x-api-key"] = parameters.signature
+        case .uploadImageForBounds(let parameters, _):
+            headers["Content-type"] = "application/octet-stream"
             headers["x-api-key"] = parameters.signature
         case .getSimilars(let parameters):
             headers["x-api-key"] = parameters.signature

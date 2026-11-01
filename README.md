@@ -154,6 +154,14 @@ To use the "Recommendations" functionality, do the following:
 *   `getSimilarProducts(similarProducts: SimilarProducts, completion: @escaping (SyteResult<SimilarProductsResult>) -> Void)`
 *   `getShopTheLook(shopTheLook: ShopTheLook, completion: @escaping (SyteResult<ShopTheLookResult>) -> Void)`
 *   `getPersonalization(personalization: Personalization, completion: @escaping (SyteResult<PersonalizationResult>) -> Void)`
+*   `getBoughtTogether(boughtTogether: BoughtTogether, completion: @escaping (SyteResult<PersonalizationResult>) -> Void)`
+
+"Frequently bought together" takes the SKUs in the shopper's cart, or the product they're looking at:
+```swift
+syte.getBoughtTogether(boughtTogether: BoughtTogether(skus: ["ABC123"])) { result in
+// Handle response, result type is SyteResult<PersonalizationResult>
+}
+```
 
 **NOTE:** You must add at least one product ID to use the "Personalization" functionality. To do this use the 
 ```swift

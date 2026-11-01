@@ -38,4 +38,8 @@ class ProductRecommendationClient {
         syteRemoteDataSource.getPersonalization(personalization: personalization, completion: completion)
     }
     
+    func getBoughtTogether(boughtTogether: BoughtTogether, completion: @escaping (SyteResult<PersonalizationResult>) -> Void) {
+        syteRemoteDataSource.getBoughtTogether(boughtTogether: boughtTogether, completion: completion)
+    }
+    
 }

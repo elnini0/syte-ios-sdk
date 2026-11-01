@@ -73,6 +73,33 @@ final class OfflineTests: XCTestCase {
         XCTAssertEqual(call.headers?["x-api-key"], "key")
     }
 
+    func testPhotoUploadGoesStraightToDetection() throws {
+        let call = SyteProvider.uploadImageForBounds(parameters: .init(accountId: "1", signature: "key", userId: nil, sessionId: nil,
+                                                                       syteAppRef: "camera", locale: "en_US", sku: nil,
+                                                                       imageUrl: "", sessionSkus: nil, options: [:]),
+                                                     imageData: Data([0xFF, 0xD8]))
+        XCTAssertEqual(call.path, "/v1.1/offers/bb")
+        XCTAssertEqual(call.method.rawValue, "POST")
+        XCTAssertEqual(call.headers?["Content-type"], "application/octet-stream")
+        XCTAssertEqual(call.headers?["x-api-key"], "key")
+        guard case let .requestCompositeData(body, query) = call.task else { return XCTFail("photo bytes must be the body") }
+        XCTAssertEqual(body, Data([0xFF, 0xD8]))
+        XCTAssertEqual(query["payload_type"] as? String, "image_bin")
+        XCTAssertEqual(query["syte_product"] as? String, "camera")
+        XCTAssertNil(query["imageUrl"])
+    }
+
+    func testBoughtTogetherNeedsAtLeastOneSku() throws {
+        let syte = try XCTUnwrap(Syte(configuration: SyteConfiguration(accountId: "1", signature: "key")))
+        let done = expectation(description: "response")
+        syte.getBoughtTogether(boughtTogether: BoughtTogether(skus: [])) { result in
+            XCTAssertFalse(result.isSuccessful)
+            XCTAssertNotNil(result.errorMessage)
+            done.fulfill()
+        }
+        wait(for: [done], timeout: 5)
+    }
+
     func testTextSearchCallsDoNotSendKeyHeader() {
         // The text search endpoints reject x-api-key with a 403.
         let call = SyteProvider.getPopularSearch(parameters: .init(accountId: "1", signature: "key", lang: "en_US"))
@@ -157,6 +184,7 @@ final class LiveAPITests: XCTestCase {
         let request = ImageSearch(image: try XCTUnwrap(UIImage(data: data)))
         let bounds = wait { self.syte.getBoundsForImage(imageSearch: request, completion: $0) }
         XCTAssertFalse(try XCTUnwrap(bounds.data?.bounds).isEmpty)
+        XCTAssertFalse(try XCTUnwrap(bounds.data?.firstBoundItemsResult?.items).isEmpty)
     }
 
     func testRecommendations() throws {
@@ -169,6 +197,9 @@ final class LiveAPITests: XCTestCase {
 
         let look = wait { self.syte.getShopTheLook(shopTheLook: ShopTheLook(sku: sku, imageUrl: imageUrl), completion: $0) }
         XCTAssertNotNil(look.data?.items)
+
+        let together = wait { self.syte.getBoughtTogether(boughtTogether: BoughtTogether(skus: [sku]), completion: $0) }
+        XCTAssertFalse(try XCTUnwrap(together.data?.data).isEmpty)
 
         try syte.addViewedProduct(sku: sku)
         let personal = wait { self.syte.getPersonalization(personalization: Personalization(), completion: $0) }

@@ -127,6 +127,19 @@ public final class Syte {
     }
     
     /**
+     Make 'Frequently bought together' call: returns products that shoppers often buy together with the given ones,
+     for example to fill a "complete your order" row in the cart.
+     
+     - parameters:
+        - boughtTogether: `BoughtTogether`
+        - completion: `SyteResult<PersonalizationResult>`.
+     */
+    public func getBoughtTogether(boughtTogether: BoughtTogether,
+                                  completion: @escaping (SyteResult<PersonalizationResult>) -> Void) {
+        productRecommendationClient.getBoughtTogether(boughtTogether: boughtTogether, completion: completion)
+    }
+    
+    /**
      Retrieves the most popular searches for the specified language.
      
      - parameters:

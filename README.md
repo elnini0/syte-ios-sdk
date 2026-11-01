@@ -31,10 +31,6 @@ and pick "Up to Next Major Version" from 3.0.0. In a `Package.swift`:
 pod 'Syte', :git => 'https://github.com/elnini0/syte-ios-sdk.git', :tag => '3.0.0'
 ```
 
-## Example app
-
-The CocoaPods example app under `Example/` is from 2021 and does not build on current Xcode. It will be replaced by a SwiftUI demo app.
-
 ## Running the tests
 
 Offline tests run as is. Live tests call the real API and are skipped unless you pass an account:

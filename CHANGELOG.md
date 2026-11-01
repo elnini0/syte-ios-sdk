@@ -25,4 +25,5 @@ Refresh of the 2021 SDK for current Xcode and the current Syte API.
 - Visual search, recommendation and event calls also send the API key in the `x-api-key` header, as the docs describe. Text search keeps the `sig` parameter, since those endpoints reject the header.
 - Dropped the SwiftKeychainWrapper and SwiftLint dependencies, and the ReactiveSwift and RxSwift builds pulled in through Moya.
 - Clean build on Swift 6 toolchains with no warnings.
+- Removed the 2021 CocoaPods example app, which no longer built.
 - Added offline tests, and live tests that run against a real account when credentials are provided.

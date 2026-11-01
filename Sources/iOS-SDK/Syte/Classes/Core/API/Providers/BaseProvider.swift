@@ -14,7 +14,7 @@ protocol BaseProvider {}
 extension BaseProvider {
     
     var baseURL: URL {
-        URL(string: "https://cdn.syteapi.com")!
+        URL(string: "https://cdn-api.syteapi.com")!
     }
     
     var path: String {

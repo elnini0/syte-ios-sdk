@@ -13,7 +13,7 @@ public class BoundingBox: Codable, ReflectedStringConvertible {
     public var filtersMobileLayoutV2: Bool?
     public var active: Bool?
     public var offerNavBehaviourMobile: String?
-    public var inspoGalleryImagesSkus: [String]?
+    public var inspoGalleryImagesSkus: JSONValue?
     public var inspoGalleryImages: [String]?
     public var filters: Filters?
     public var desktopTheme: String?

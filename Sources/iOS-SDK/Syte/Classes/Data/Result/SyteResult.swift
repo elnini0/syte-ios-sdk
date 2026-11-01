@@ -58,16 +58,16 @@ extension SyteResult {
         return result
     }
     
-    static func failureResult<T>(message: String) -> SyteResult<T> {
-        let syteResult = SyteResult<T>()
+    static func failureResult<U>(message: String) -> SyteResult<U> {
+        let syteResult = SyteResult<U>()
         syteResult.data = nil
         syteResult.errorMessage = message
         
         return syteResult
     }
     
-    static func successResult<T>(data: T, code: Int) -> SyteResult<T> {
-        let syteResult = SyteResult<T>()
+    static func successResult<U>(data: U, code: Int) -> SyteResult<U> {
+        let syteResult = SyteResult<U>()
         syteResult.data = data
         syteResult.isSuccessful = true
         syteResult.resultCode = code

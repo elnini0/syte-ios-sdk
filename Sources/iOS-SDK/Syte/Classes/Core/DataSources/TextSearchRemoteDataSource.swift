@@ -26,7 +26,8 @@ class TextSearchRemoteDataSource: BaseRemoteDataSource {
                                                           signature: configuration.signature,
                                                           query: query))
         }.done { result in
-            completion(result)
+            // The API answers 404 when it has no suggestions for the query.
+            completion(result.resultCode == 404 ? .successResult(data: AutoCompleteResult(), code: 404) : result)
         }.catch { error in
             completion(.failureResult(message: error.localizedDescription))
         }
@@ -42,6 +43,8 @@ class TextSearchRemoteDataSource: BaseRemoteDataSource {
                                                            signature: configuration.signature,
                                                            lang: lang))
         }.done { [weak self] result in
+            // The API answers 404 when the account has no popular searches yet.
+            guard result.resultCode != 404 else { return completion(.successResult(data: [], code: 404)) }
             self?.configuration.getStorage().addPopularSearch(data: result.data ?? [], lang: lang)
             completion(result)
         }.catch { error in

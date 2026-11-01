@@ -8,8 +8,8 @@
 
 Pod::Spec.new do |s|
   s.name             = 'Syte'
-  s.version          = '1.0.0-beta2'
-  s.summary          = 'Site SDK'
+  s.version          = '3.0.0'
+  s.summary          = 'Syte SDK: visual search, recommendations, text search and event tracking'
 
 # This description is used to generate tags and improve search results.
 #   * Think: What does it do? Why did you write it? What is the focus?
@@ -19,14 +19,14 @@ Pod::Spec.new do |s|
 
   s.description      = "Site SDK"
 
-  s.homepage         = 'https://github.com/syte-ai/iOS-SDK'
+  s.homepage         = 'https://github.com/elnini0/syte-ios-sdk'
   # s.screenshots     = 'www.example.com/screenshots_1', 'www.example.com/screenshots_2'
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
   s.author           = { 'tarasenko.artur' => 'artur.tarasenko@cloverdynamics.com' }
-  s.source           = { :git => 'https://github.com/syte-ai/iOS-SDK.git', :tag => s.version.to_s }
+  s.source           = { :git => 'https://github.com/elnini0/syte-ios-sdk.git', :tag => s.version.to_s }
   # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
   #  s.static_framework = true
-  s.ios.deployment_target = '10.0'
+  s.ios.deployment_target = '15.0'
   s.swift_versions = ['5']
 
   s.source_files = 'Sources/iOS-SDK/Syte/Classes/**/*'
@@ -37,9 +37,7 @@ Pod::Spec.new do |s|
 
   # s.public_header_files = 'Pod/Classes/**/*.h'
   # s.frameworks = 'UIKit', 'MapKit'
-   s.dependency 'Moya'
-   s.dependency 'SwiftLint'
-   s.dependency 'SwiftKeychainWrapper'
-   s.dependency 'PromiseKit'
+   s.dependency 'Moya', '~> 15.0'
+   s.dependency 'PromiseKit', '~> 6.18'
   
 end

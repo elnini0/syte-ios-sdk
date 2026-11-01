@@ -7,12 +7,11 @@
 //
 
 import Foundation
-import SwiftKeychainWrapper
 
 class SyteStorage {
     
     private static let tag = String(describing: SyteStorage.self)
-    private let storage = KeychainWrapper.standard
+    private let storage: SyteDefaults
     
     private let sessionIdPrefKey = "syte_session_id_pref"
     private let userIdPrefKey = "syte_user_id_pref"
@@ -24,8 +23,10 @@ class SyteStorage {
     
     private let textSearchTermCount = 50
     
-    init() {
-        clear()
+    /// Values live in their own defaults suite so the SDK never touches the host app's storage.
+    /// The shopper ID must survive app launches, so nothing is wiped on init.
+    init(suiteName: String = "com.syte.sdk") {
+        storage = SyteDefaults(suiteName: suiteName)
     }
     
     func getSessionId() -> Int {
@@ -123,8 +124,41 @@ class SyteStorage {
         Int(NSDate().timeIntervalSince1970 * 1000)
     }
     
-    private func clear() {
+    func clear() {
         storage.removeAllKeys()
     }
     
+}
+
+/// Thin wrapper over a dedicated UserDefaults suite, keeping the call shapes the storage code already uses.
+private struct SyteDefaults {
+
+    private let suiteName: String
+    private let defaults: UserDefaults
+
+    init(suiteName: String) {
+        self.suiteName = suiteName
+        defaults = UserDefaults(suiteName: suiteName) ?? .standard
+    }
+
+    func integer(forKey key: String) -> Int? {
+        defaults.object(forKey: key) as? Int
+    }
+
+    func string(forKey key: String) -> String? {
+        defaults.string(forKey: key)
+    }
+
+    func set(_ value: Int, forKey key: String) {
+        defaults.set(value, forKey: key)
+    }
+
+    func set(_ value: String, forKey key: String) {
+        defaults.set(value, forKey: key)
+    }
+
+    func removeAllKeys() {
+        defaults.removePersistentDomain(forName: suiteName)
+    }
+
 }

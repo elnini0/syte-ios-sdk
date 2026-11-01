@@ -39,19 +39,14 @@ class Utils {
     }
     
     static func generateFiltersString(filters: TextSearchFilters) -> String? {
-        guard !filters.isEmpty else { return nil }
-        var string = "{"
-        for filter in filters {
-            string += "\"\(filter.key)\":["
-            for filterValue in filter.value {
-                string += "\"\(filterValue)\","
-            }
-            string.removeLast()
-            string += "]"
-        }
-        string.removeLast()
-        string += "}"
-        return string
+        guard !filters.isEmpty,
+              let data = try? JSONSerialization.data(withJSONObject: filters, options: [.sortedKeys]) else { return nil }
+        return String(data: data, encoding: .utf8)
     }
-    
+
+    /// Money amounts as Syte's event payloads expect them, e.g. "62.94".
+    static func formattedAmount(_ amount: Double) -> String {
+        String(format: "%.2f", locale: Locale(identifier: "en_US_POSIX"), amount)
+    }
+
 }

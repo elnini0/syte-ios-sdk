@@ -58,8 +58,8 @@ extension EventsProvider: TargetType, AccessTokenAuthorizable {
     
     var headers: [String: String]? {
         switch self {
-        default:
-            return ["Content-type": "application/octet-stream"]
+        case .fireEvent(_, _, _, let signature, _, _, _, _):
+            return ["Content-type": "application/octet-stream", "x-api-key": signature]
         }
     }
     

@@ -33,7 +33,7 @@ enum SyteProvider: BaseProvider {
 extension SyteProvider: TargetType, AccessTokenAuthorizable {
     
     var baseURL: URL {
-        let base = URL(string: "https://cdn.syteapi.com")!
+        let base = URL(string: "https://cdn-api.syteapi.com")!
         switch self {
         case .getOffers(let parameters):
             return URL(string: parameters.offersUrl) ?? base
@@ -103,12 +103,23 @@ extension SyteProvider: TargetType, AccessTokenAuthorizable {
     }
     
     var headers: [String: String]? {
+        var headers = ["Content-type": "application/json"]
         switch self {
-        case .getPersonalization:
-            return ["Content-type": "text/plain"]
-        default:
-            return ["Content-type": "application/json"]
+        case .getPersonalization(let parameters):
+            headers["Content-type"] = "text/plain"
+            headers["x-api-key"] = parameters.signature
+        case .getBounds(let parameters):
+            headers["x-api-key"] = parameters.signature
+        case .getSimilars(let parameters):
+            headers["x-api-key"] = parameters.signature
+        case .getShopTheLook(let parameters):
+            headers["x-api-key"] = parameters.signature
+        // Text search endpoints reject x-api-key with a 403 and only take `sig`.
+        // The offers link already carries its own key.
+        case .getSettings, .getOffers, .getPopularSearch, .getTextSearch, .getAutoComplete:
+            break
         }
+        return headers
     }
     
     var sampleData: Data {

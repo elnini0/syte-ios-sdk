@@ -38,11 +38,7 @@ public class EventProductsAddedToCart: BaseSyteEvent {
     }
     
     override public func getRequestBodyString() -> String {
-        let jsonEncoder = JSONEncoder()
-        let jsonData = try? jsonEncoder.encode(self)
-        let json = String(data: jsonData ?? Data(), encoding: String.Encoding.utf8)
-        
-        return json ?? ""
+        BaseSyteEvent.rawDataBody(["products": products.map { $0.rawDataPayload(priceAsString: false) }])
     }
     
 }

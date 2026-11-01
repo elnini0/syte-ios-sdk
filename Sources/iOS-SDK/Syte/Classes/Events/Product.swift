@@ -39,6 +39,11 @@ public class Product: Codable {
         price = try container.decode(Double.self, forKey: .price)
     }
     
+    /// Product entry inside an ecommerce event's `rawData` payload.
+    func rawDataPayload(priceAsString: Bool) -> [String: Any] {
+        ["sku": sku, "quantity": quantity, "price": priceAsString ? Utils.formattedAmount(price) : price]
+    }
+
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         

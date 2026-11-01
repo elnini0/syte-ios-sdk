@@ -1,34 +1,54 @@
 # Syte iOS SDK
 
-[![CI Status](https://img.shields.io/travis/arturtarasenko/Syte.svg?style=flat)](https://travis-ci.org/arturtarasenko/Syte)
-[![Version](https://img.shields.io/cocoapods/v/Syte.svg?style=flat)](https://cocoapods.org/pods/Syte)
-[![License](https://img.shields.io/cocoapods/l/Syte.svg?style=flat)](https://cocoapods.org/pods/Syte)
-[![Platform](https://img.shields.io/cocoapods/p/Syte.svg?style=flat)](https://cocoapods.org/pods/Syte)
+Data-only client for Syte's product discovery API: visual search, similar items, Shop the Look, personalized recommendations, text search and event tracking. It returns data; your app draws the screens.
 
-## Example
-
-To run the example project, clone the repo, and run `pod install` from the Example directory first.
+See [CHANGELOG.md](CHANGELOG.md) for what changed in 3.0.
 
 ## Requirements
 
+- iOS 15 or later
+- Xcode 15 or later (tested on Xcode 27.2)
+
 ## Installation
 
-Syte is available through [CocoaPods](https://cocoapods.org). To install
-it, simply add the following line to your Podfile:
+### Swift Package Manager
 
-```ruby
-pod 'Syte', :git => 'https://github.com/syte-ai/iOS-SDK.git'
+In Xcode, File > Add Package Dependencies, then enter:
+
+```
+https://github.com/elnini0/syte-ios-sdk.git
 ```
 
-Also, it is SwiftPM supportable. Add package to project with Xcode:
+and pick "Up to Next Major Version" from 3.0.0. In a `Package.swift`:
 
- ```ruby
- https://github.com/syte-ai/iOS-SDK.git
- ```
+```swift
+.package(url: "https://github.com/elnini0/syte-ios-sdk.git", from: "3.0.0")
+```
+
+### CocoaPods
+
+```ruby
+pod 'Syte', :git => 'https://github.com/elnini0/syte-ios-sdk.git', :tag => '3.0.0'
+```
+
+## Example app
+
+The CocoaPods example app under `Example/` is from 2021 and does not build on current Xcode. It will be replaced by a SwiftUI demo app.
+
+## Running the tests
+
+Offline tests run as is. Live tests call the real API and are skipped unless you pass an account:
+
+```
+TEST_RUNNER_SYTE_ACCOUNT_ID=<account id> TEST_RUNNER_SYTE_API_KEY=<api key> \
+  xcodebuild test -scheme iOS-SDK -destination 'platform=iOS Simulator,name=iPhone 18 Pro'
+```
+
+Optional: `TEST_RUNNER_SYTE_TEST_QUERY` and `TEST_RUNNER_SYTE_TEST_LANG` (defaults `robe` and `fr_FR`) pick a search term that returns products for your account.
 
 ## Account Credentials
 
-In order to use this SDK, please contact Syte for your account ID and signature.     
+In order to use this SDK, please contact Syte for your account ID and API key. The `signature` parameter below is your API key.     
 
 ## Use the SDK
 
@@ -201,7 +221,7 @@ syte.getPlatformSettings(completion: @escaping (SyteResult<SytePlatformSettings>
 
 ## Author
 
-Artur Tarasenko, artur.tarasenko@cloverdynamics.com
+Originally written by Artur Tarasenko (Clover Dynamics) for Syte. Maintained in this fork since 2026.
 
 ## License
 

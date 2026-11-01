@@ -57,6 +57,16 @@ public class BaseSyteEvent: RequestableEvent, Codable {
     }
     
     // Get array of tags converted to string (comma separated)
+    /// Ecommerce events carry their data as a JSON string in `rawData`; Syte ignores it anywhere else.
+    static func rawDataBody(_ payload: [String: Any]) -> String {
+        guard let inner = try? JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys]),
+              let innerString = String(data: inner, encoding: .utf8),
+              let outer = try? JSONSerialization.data(withJSONObject: ["rawData": innerString], options: [.sortedKeys]) else {
+            return ""
+        }
+        return String(data: outer, encoding: .utf8) ?? ""
+    }
+
     public func getTagsString() -> String {
         eventsTags.joined(separator: ",")
     }

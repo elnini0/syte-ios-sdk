@@ -9,7 +9,7 @@ import Foundation
 import Moya
 import PromiseKit
 
-protocol SyteServiceProtocol: class {
+protocol SyteServiceProtocol: AnyObject {
     
     func getSettings(accountId: String) -> Promise<SyteResult<SytePlatformSettings>>
     

@@ -24,6 +24,7 @@ public class HitsItem: Codable, ReflectedStringConvertible {
     private(set) public var price: String?
     private(set) public var imageUrl: String?
     private(set) public var id: String?
+    private(set) public var sku: String?
     private(set) public var categories: [String]?
     private(set) public var floatOriginalPrice: String?
     private(set) public var brand: String?
@@ -31,7 +32,7 @@ public class HitsItem: Codable, ReflectedStringConvertible {
     internal(set) public var originalData: [String: JSONValue]?
     
     enum CodingKeys: String, CodingKey {
-        case tagging, floatPrice, originalPrice, merchant, description, title, tags, offer, price, imageUrl, id, categories, floatOriginalPrice, brand
+        case tagging, floatPrice, originalPrice, merchant, description, title, tags, offer, price, imageUrl, id, sku, categories, floatOriginalPrice, brand
         case originalData = "original_data"
         case keywordsCompound = "keywords_compound"
         case matchedQueries = "matched_queries"

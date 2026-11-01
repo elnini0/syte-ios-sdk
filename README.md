@@ -40,6 +40,8 @@ TEST_RUNNER_SYTE_ACCOUNT_ID=<account id> TEST_RUNNER_SYTE_API_KEY=<api key> \
   xcodebuild test -scheme iOS-SDK -destination 'platform=iOS Simulator,name=iPhone 18 Pro'
 ```
 
+Recently viewed, collection and gallery live tests also need `TEST_RUNNER_SYTE_TEST_DISCOVERY=1`, and `TEST_RUNNER_SYTE_TEST_COLLECTION_ID` / `TEST_RUNNER_SYTE_TEST_GALLERY_ID` for the last two.
+
 Optional: `TEST_RUNNER_SYTE_TEST_QUERY` and `TEST_RUNNER_SYTE_TEST_LANG` (defaults `robe` and `fr_FR`) pick a search term that returns products for your account.
 
 ## Account Credentials
@@ -168,6 +170,38 @@ syte.getBoughtTogether(boughtTogether: BoughtTogether(skus: ["ABC123"])) { resul
 Syte.addViewedProduct(String)
 ``` 
 method.
+
+# Recently viewed, collections and galleries
+
+These calls read data Syte keeps on its side, and need the features enabled on your account. They have not been tested against a live account yet: the test account available while building them answers 403.
+
+Recently viewed products for this SDK's shopper ID, most recent first:
+```swift
+syte.getRecentlyViewed { result in
+// Handle response, result type is SyteResult<RecentlyViewedResult>
+}
+syte.removeRecentlyViewed(sku: "ABC123") { result in }
+syte.mergeRecentlyViewed(fromUserId: "<another shopper ID>") { result in }
+```
+Syte builds this list from the shopper's activity; check with Syte which events feed it in an app.
+
+A merchandising collection's products, a page at a time:
+```swift
+let collection = MerchandisingCollection(id: "<collection id>")
+collection.size = 12
+syte.getCollection(collection: collection) { result in
+// Handle response, result type is SyteResult<CollectionResult>
+}
+```
+
+A shoppable gallery, with the products tagged on each image:
+```swift
+syte.getShoppableGallery(gallery: ShoppableGallery(id: "<gallery id>")) { result in
+// Handle response, result type is SyteResult<ShoppableGalleryResult>
+}
+```
+
+Products from these calls come back as `SyteProduct`, with common fields typed and everything else in `fields`. Ask for other product fields with the request's `fields` property.
 
 # Personalized ranking
 

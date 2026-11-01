@@ -7,6 +7,7 @@ Refresh of the 2021 SDK for current Xcode and the current Syte API.
 ### Added
 
 - Frequently bought together recommendations.
+- Recently viewed products (get, remove, merge histories), merchandising collections and shoppable galleries. Built from Syte's API docs and not yet tested against a live account.
 - Photo search uploads the photo straight to item detection in one call, as Syte's current docs describe, replacing the separate image upload service. Photo searches are reported as camera searches.
 
 ### Breaking

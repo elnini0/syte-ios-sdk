@@ -19,6 +19,7 @@ public final class Syte {
     
     private let syteRemoteDataSource: SyteRemoteDataSource
     private let eventsRemoteDataSource: EventsRemoteDataSource
+    private let discoveryRemoteDataSource: DiscoveryRemoteDataSource
     private var imageSearchClient: ImageSearchClient
     private var productRecommendationClient: ProductRecommendationClient
     private var textSearchClient: TextSearchClient
@@ -42,6 +43,7 @@ public final class Syte {
             self.configuration = configuration
             syteRemoteDataSource = SyteRemoteDataSource(configuration: configuration)
             eventsRemoteDataSource = EventsRemoteDataSource(configuration: configuration)
+            discoveryRemoteDataSource = DiscoveryRemoteDataSource(configuration: configuration)
             imageSearchClient = ImageSearchClient(syteRemoteDataSource: syteRemoteDataSource)
             productRecommendationClient = ProductRecommendationClient(syteRemoteDataSource: syteRemoteDataSource)
             textSearchClient = TextSearchClient(syteRemoteDataSource: syteRemoteDataSource,
@@ -140,6 +142,66 @@ public final class Syte {
     }
     
     /**
+     Retrieves the shopper's recently viewed products from Syte, most recent first.
+     The list belongs to this SDK's shopper ID (`SyteConfiguration.userId`).
+     
+     - parameters:
+        - request: `RecentlyViewed`
+        - completion: `SyteResult<RecentlyViewedResult>`.
+     */
+    public func getRecentlyViewed(request: RecentlyViewed = RecentlyViewed(),
+                                  completion: @escaping (SyteResult<RecentlyViewedResult>) -> Void) {
+        discoveryRemoteDataSource.getRecentlyViewed(request: request, completion: completion)
+    }
+    
+    /**
+     Removes a product from the shopper's recently viewed list.
+     
+     - parameters:
+        - sku: Product to remove.
+        - completion: `SyteResult<Bool>`.
+     */
+    public func removeRecentlyViewed(sku: String, completion: @escaping (SyteResult<Bool>) -> Void) {
+        discoveryRemoteDataSource.removeRecentlyViewed(sku: sku, completion: completion)
+    }
+    
+    /**
+     Moves another shopper ID's recently viewed history into this one, for example the history a
+     shopper built on another device before signing in.
+     
+     - parameters:
+        - fromUserId: Shopper ID whose history is merged in.
+        - completion: `SyteResult<Bool>`.
+     */
+    public func mergeRecentlyViewed(fromUserId: String, completion: @escaping (SyteResult<Bool>) -> Void) {
+        discoveryRemoteDataSource.mergeRecentlyViewed(fromUserId: fromUserId, completion: completion)
+    }
+    
+    /**
+     Retrieves a page of a merchandising collection's products.
+     
+     - parameters:
+        - collection: `MerchandisingCollection`
+        - completion: `SyteResult<CollectionResult>`.
+     */
+    public func getCollection(collection: MerchandisingCollection,
+                              completion: @escaping (SyteResult<CollectionResult>) -> Void) {
+        discoveryRemoteDataSource.getCollection(request: collection, completion: completion)
+    }
+    
+    /**
+     Retrieves a shoppable gallery: images with the products tagged on them.
+     
+     - parameters:
+        - gallery: `ShoppableGallery`
+        - completion: `SyteResult<ShoppableGalleryResult>`.
+     */
+    public func getShoppableGallery(gallery: ShoppableGallery,
+                                    completion: @escaping (SyteResult<ShoppableGalleryResult>) -> Void) {
+        discoveryRemoteDataSource.getShoppableGallery(request: gallery, completion: completion)
+    }
+    
+    /**
      Retrieves the most popular searches for the specified language.
      
      - parameters:
@@ -214,6 +276,7 @@ public final class Syte {
         self.configuration = configuration
         syteRemoteDataSource.setConfiguration(configuration)
         eventsRemoteDataSource.setConfiguration(configuration)
+        discoveryRemoteDataSource.setConfiguration(configuration)
         textSearchClient.allowAutoCompletionQueue = configuration.allowAutoCompletionQueue
         
     }

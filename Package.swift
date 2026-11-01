@@ -11,6 +11,10 @@ let package = Package(
             name: "iOS-SDK",
             targets: ["iOS-SDK"]
         ),
+        .library(
+            name: "SyteUI",
+            targets: ["SyteUI"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/Moya/Moya.git", .upToNextMajor(from: "15.0.0")),
@@ -24,9 +28,17 @@ let package = Package(
                 "PromiseKit"
             ]
         ),
+        .target(
+            name: "SyteUI",
+            dependencies: ["iOS-SDK"]
+        ),
         .testTarget(
             name: "iOS-SDKTests",
             dependencies: ["iOS-SDK"]
+        ),
+        .testTarget(
+            name: "SyteUITests",
+            dependencies: ["SyteUI", "iOS-SDK"]
         )
     ],
     swiftLanguageVersions: [.v5]

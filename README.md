@@ -1,6 +1,6 @@
 # Syte iOS SDK
 
-Data-only client for Syte's product discovery API: visual search, similar items, Shop the Look, personalized recommendations, text search and event tracking. It returns data; your app draws the screens.
+Client for Syte's product discovery API: visual search, similar items, Shop the Look, personalized recommendations, text search and event tracking. The `iOS-SDK` library returns data for your own screens. The optional `SyteUI` library adds ready-made SwiftUI screens on top of it, see [UI kit](#ui-kit).
 
 See [CHANGELOG.md](CHANGELOG.md) for what changed in 3.0.
 
@@ -31,13 +31,93 @@ and pick "Up to Next Major Version" from 3.0.0. In a `Package.swift`:
 pod 'Syte', :git => 'https://github.com/elnini0/syte-ios-sdk.git', :tag => '3.0.0'
 ```
 
+## UI kit
+
+`SyteUI` is a second library in the same package: SwiftUI views that call Syte, show the results, and send Syte's events on their own. Add it to your target next to `iOS-SDK`. iOS 15 or later, Swift Package Manager only.
+
+- `SyteProductCarousel` is a titled row of similar items, Shop the Look, personalized picks, frequently bought together, recently viewed or a merchandising collection. It shows placeholder cards while loading and hides itself when there's nothing to show.
+- `SyteVisualSearchView` asks for a photo (camera or library), marks the items Syte finds, and shows results for the one the shopper taps. Started with an image URL, it searches that image right away, for a "find similar" button on a product page.
+- `SyteSearchView` has a search box with recent and popular searches, suggestions while typing, and a results grid that loads more as the shopper scrolls.
+- The pieces they're built from are public too: `SyteProductCard`, `SyteProductGrid`, `SyteProductImage`, `SytePriceView`.
+
+Create the service once and hand it to the views through the environment:
+
+```swift
+import SwiftUI
+import SyteUI
+import iOS_SDK
+
+@main
+struct ShopApp: App {
+    let syte = SyteLiveService(syte: Syte(configuration: SyteConfiguration(accountId: "<account id>", signature: "<api key>"))!)
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView().syteService(syte)
+        }
+    }
+}
+```
+
+Then drop the views where they belong. Each takes a closure for when the shopper picks a product:
+
+```swift
+SyteProductCarousel(.similar(sku: product.sku, imageURL: product.imageURL), title: "You may also like") { picked in
+    router.openProduct(picked.sku)
+}
+
+SyteVisualSearchView { picked in router.openProduct(picked.sku) }
+
+SyteSearchView { picked in router.openProduct(picked.sku) }
+```
+
+Pass your own card to any carousel or grid to match your product tiles:
+
+```swift
+SyteProductCarousel(.boughtTogether(skus: cart.skus), title: "Complete your order") { picked in
+    cart.add(picked.sku)
+} card: { product in
+    MyProductTile(product)
+}
+```
+
+Colors, fonts, sizes and every piece of text come from a theme:
+
+```swift
+var theme = SyteTheme()
+theme.accent = .brown
+theme.cornerRadius = 4
+theme.strings.searchPlaceholder = "Rechercher"
+ContentView().syteTheme(theme)
+```
+
+Taking photos needs `NSCameraUsageDescription` in your Info.plist. Choosing from the library needs no permission.
+
+### Events the views send
+
+- Similar items and Shop the Look rows: when the row is shown, and each product click.
+- Photo search: camera button shown and tapped, items found, item tapped, results shown, result clicked. Clicks carry the product the search started from and the link clicked, when known.
+- Search: when results are shown, with whether the query was typed, a recent search or a popular one.
+
+Personalized, bought together, recently viewed and collection rows send nothing, and neither do clicks on search results: Syte documents no events for them. Page views, add to cart and purchases stay your app's job, as in the [events section](#data-collection).
+
+### Previews and tests
+
+`SytePreviewService` returns made-up products with no network calls and keeps every event it's sent, for SwiftUI previews and unit tests. Products, search box and item markers carry the accessibility identifiers `syte.product`, `syte.carousel.product`, `syte.search.field` and `syte.marker` for UI tests.
+
+### Demo app
+
+`Demo/SyteDemo.xcodeproj` is a small shop built from the kit: search, product pages with all three recommendation rows, photo search and a "For you" tab. It runs on made-up products. To use your catalog, add `SYTE_ACCOUNT_ID`, `SYTE_API_KEY` and optionally `SYTE_LOCALE` under Edit Scheme > Run > Arguments > Environment Variables. Don't commit the scheme with them.
+
+The demo's UI test walks through every screen and keeps a screenshot of each step in the test results. Pass the same variables with a `TEST_RUNNER_` prefix to run it on your account.
+
 ## Running the tests
 
 Offline tests run as is. Live tests call the real API and are skipped unless you pass an account:
 
 ```
 TEST_RUNNER_SYTE_ACCOUNT_ID=<account id> TEST_RUNNER_SYTE_API_KEY=<api key> \
-  xcodebuild test -scheme iOS-SDK -destination 'platform=iOS Simulator,name=iPhone 18 Pro'
+  xcodebuild test -scheme iOS-SDK-Package -destination 'platform=iOS Simulator,name=iPhone 18 Pro'
 ```
 
 Recently viewed, collection and gallery live tests also need `TEST_RUNNER_SYTE_TEST_DISCOVERY=1`, and `TEST_RUNNER_SYTE_TEST_COLLECTION_ID` / `TEST_RUNNER_SYTE_TEST_GALLERY_ID` for the last two.
@@ -226,7 +306,7 @@ Personalized ranking is disabled by default.
 
 The SDK can be used to fire various events to Syte. Example:
 ```swift  
-syte.fireEvent(EventCheckoutStart())
+syte.fire(event: EventCheckoutStart(price: 62.94, currency: "EUR", productList: products, pageName: "checkout"))
 ```
 # Text Search
 

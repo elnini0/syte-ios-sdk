@@ -22,6 +22,10 @@ public class BoundsResult: Codable, ReflectedStringConvertible {
      */
     public var firstBoundItemsResult: ItemsResult?
     
+    /// The image the bounds were detected in. For photo searches this is the copy Syte stored,
+    /// which expires after a while. Send it as the image URL in visual search events.
+    internal(set) public var imageUrl: String?
+    
     enum CodingKeys: String, CodingKey {
         case bounds
     }

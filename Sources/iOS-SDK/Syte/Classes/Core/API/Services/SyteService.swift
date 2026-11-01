@@ -42,6 +42,7 @@ class SyteService: SyteServiceProtocol {
                 let mapString = try response.mapString().replacingOccurrences(of: parameters.imageUrl, with: "bounds")
                 let formattedResponse = Response(statusCode: response.statusCode, data: mapString.data(using: .utf8) ?? Data())
                 let bounds = try formattedResponse.map(BoundsResult.self)
+                bounds.imageUrl = parameters.imageUrl
                 result.data = bounds
                 result.isSuccessful = true
             } catch {
@@ -61,9 +62,11 @@ class SyteService: SyteServiceProtocol {
             do {
                 _ = try response.filterSuccessfulStatusCodes()
                 guard let json = try JSONSerialization.jsonObject(with: response.data) as? [String: Any],
-                      let bounds = json.values.first else { throw SyteError.generalError(message: "No items detected in the photo.") }
-                let normalized = try JSONSerialization.data(withJSONObject: ["bounds": bounds])
-                result.data = try JSONDecoder().decode(BoundsResult.self, from: normalized)
+                      let stored = json.first else { throw SyteError.generalError(message: "No items detected in the photo.") }
+                let normalized = try JSONSerialization.data(withJSONObject: ["bounds": stored.value])
+                let decoded = try JSONDecoder().decode(BoundsResult.self, from: normalized)
+                decoded.imageUrl = stored.key
+                result.data = decoded
                 result.isSuccessful = true
             } catch {
                 let stringResponse = try? response.mapString()

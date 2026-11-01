@@ -18,13 +18,24 @@ public class EventOfferClick: BaseSyteEvent {
     // Index of the result in the results list
     private let position: Int
     
+    // SKU of the product the results were found for, if any. Syte matches the click to the
+    // results event that carried the same SKU.
+    private let sourceSku: String?
+    
+    // Link the shopper was taken to
+    private let targetUrl: String?
+    
     enum CodingKeys: String, CodingKey {
         case sku, position
+        case sourceSku = "source_sku"
+        case targetUrl = "target_url"
     }
     
-    public init(sku: String, position: Int, pageName: String) {
+    public init(sku: String, position: Int, pageName: String, sourceSku: String? = nil, targetUrl: String? = nil) {
         self.sku = sku
         self.position = position
+        self.sourceSku = sourceSku
+        self.targetUrl = targetUrl
         super.init(name: "fe_offer_click", syteUrlReferer: pageName, tags: [.discoveryButton, .camera])
     }
     
@@ -33,6 +44,8 @@ public class EventOfferClick: BaseSyteEvent {
         
         sku = try container.decode(String.self, forKey: .sku)
         position = try container.decode(Int.self, forKey: .position)
+        sourceSku = try container.decodeIfPresent(String.self, forKey: .sourceSku)
+        targetUrl = try container.decodeIfPresent(String.self, forKey: .targetUrl)
         
         try super.init(from: decoder)
     }
@@ -42,6 +55,8 @@ public class EventOfferClick: BaseSyteEvent {
         
         try container.encode(sku, forKey: .sku)
         try container.encode(position, forKey: .position)
+        try container.encodeIfPresent(sourceSku, forKey: .sourceSku)
+        try container.encodeIfPresent(targetUrl, forKey: .targetUrl)
         
         try super.encode(to: encoder)
     }

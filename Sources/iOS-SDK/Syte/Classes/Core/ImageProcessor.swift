@@ -58,12 +58,20 @@ class ImageProcessor {
         }
     }
     
+    /// Fits the image inside `size`, keeping its proportions and never enlarging it. Drawing also
+    /// applies the photo's orientation, so a portrait camera shot is uploaded upright.
     static func resizeImage(_ image: UIImage, to size: CGSize) -> UIImage {
-        UIGraphicsBeginImageContextWithOptions(size, true, 1.0)
-        defer { UIGraphicsEndImageContext() }
+        let pixels = CGSize(width: image.size.width * image.scale, height: image.size.height * image.scale)
+        guard pixels.width > 0, pixels.height > 0 else { return image }
+        let ratio = min(1, size.width / pixels.width, size.height / pixels.height)
+        let target = CGSize(width: (pixels.width * ratio).rounded(), height: (pixels.height * ratio).rounded())
         
-        image.draw(in: CGRect(origin: CGPoint.zero, size: size))
-        return UIGraphicsGetImageFromCurrentImageContext() ?? image
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.opaque = true
+        return UIGraphicsImageRenderer(size: target, format: format).image { _ in
+            image.draw(in: CGRect(origin: .zero, size: target))
+        }
     }
     
 }

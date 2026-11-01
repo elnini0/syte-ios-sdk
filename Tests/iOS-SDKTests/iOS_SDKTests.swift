@@ -107,6 +107,36 @@ final class OfflineTests: XCTestCase {
         wait(for: [done], timeout: 5)
     }
 
+    func testResultsEventCarriesShownSkusAndBound() throws {
+        let event = EventBBShowResults(imageUrl: "https://example.com/a.jpg", category: "dresses", resultsCount: 2,
+                                       pageName: "camera", skus: ["A1", "B2"], sku: "PDP-1", boundIndex: 0)
+        let body = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(event.getRequestBodyString().utf8)) as? [String: Any])
+        XCTAssertEqual(body["skus"] as? String, "A1,B2", "Syte expects one comma-separated string")
+        XCTAssertEqual(body["sku"] as? String, "PDP-1")
+        XCTAssertEqual(body["bound_index"] as? Int, 0)
+    }
+    
+    func testOfferClickCarriesSourceOnlyWhenKnown() throws {
+        let withSource = EventOfferClick(sku: "A1", position: 1, pageName: "camera", sourceSku: "PDP-1", targetUrl: "https://example.com/p/a1")
+        let body = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(withSource.getRequestBodyString().utf8)) as? [String: Any])
+        XCTAssertEqual(body["source_sku"] as? String, "PDP-1")
+        XCTAssertEqual(body["target_url"] as? String, "https://example.com/p/a1")
+        
+        let plain = EventOfferClick(sku: "A1", position: 1, pageName: "camera")
+        XCTAssertFalse(plain.getRequestBodyString().contains("source_sku"))
+    }
+    
+    func testPhotosKeepTheirProportionsWhenShrunk() {
+        let portrait = UIGraphicsImageRenderer(size: CGSize(width: 3000, height: 4000)).image { _ in }
+        let resized = ImageProcessor.resizeImage(portrait, to: ImageProcessor.mediumSize)
+        XCTAssertEqual(resized.size.width * resized.scale, 1050)
+        XCTAssertEqual(resized.size.height * resized.scale, 1400)
+        
+        let small = UIGraphicsImageRenderer(size: CGSize(width: 350, height: 514), format: { let f = UIGraphicsImageRendererFormat(); f.scale = 1; return f }()).image { _ in }
+        let kept = ImageProcessor.resizeImage(small, to: ImageProcessor.mediumSize)
+        XCTAssertEqual(kept.size, CGSize(width: 350, height: 514), "small photos aren't enlarged")
+    }
+    
     func testTextSearchCallsDoNotSendKeyHeader() {
         // The text search endpoints reject x-api-key with a 403.
         let call = SyteProvider.getPopularSearch(parameters: .init(accountId: "1", signature: "key", lang: "en_US"))
